@@ -1,0 +1,5 @@
+*.pyc
+src/pulseblaster.egg-info/*
+build/*
+dist/*
+*.ipynb
