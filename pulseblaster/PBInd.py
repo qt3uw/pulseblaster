@@ -1,11 +1,11 @@
-from pulseblaster.spinapi import *
+import pulseblaster.spinapi as spincore_spinapi
 import numpy as np
 
 class PBInd:
     '''
     PBInd is a client of the SpinCore Pulseblaster API that allows the user
     to program the pins of the Pulseblaster independently of one another in python. all times are inputted in nanoseconds.
-'''
+    '''
     def __init__(self,
                 pins,
                 DEBUG_MODE = 0,
@@ -23,6 +23,7 @@ class PBInd:
         self._auto_stop = auto_stop  # boolean flag that programs the stop and does 'pb_stop_programming()'
                     # if turned off, this allows the client to program after a call to PBInd.program()
 
+        self.spinapi = spincore_spinapi
 
     def on(self, pin, start, length):
         '''
@@ -73,7 +74,7 @@ class PBInd:
             raise Exception('number of loops must be positive integer')
 
         if not self._DEBUG_MODE & self._auto_stop:
-            pb_start_programming('PULSE_PROGRAM')
+            self.spinapi.pb_start_programming('PULSE_PROGRAM')
 
         if len(offsets)==0:
             # the client did not request delays, so the matrix is unchanged
@@ -110,8 +111,8 @@ class PBInd:
             self.instructions = self.instructions + "pb_inst_pbonly(0, 'STOP', 0, " + str(2*self._res) + ")\n"
 
         if (not self._DEBUG_MODE) & self._auto_stop:
-            pb_inst_pbonly(0, 'STOP', 0, 2 * self._res)
-            pb_stop_programming()
+            self.spinapi.pb_inst_pbonly(0, 'STOP', 0, 2 * self._res)
+            self.spinapi.pb_stop_programming()
 
         self.print_instructions()
 
@@ -137,22 +138,22 @@ class PBInd:
         if len(actual_chs)==0:
             return
         # Given a chs matrix, program a sequence of Pulseblaster
-        # instructions. The 'command' can be Inst.CONTINUE or Inst.LOOP
+        # instructions. The 'command' can be self.spinapi.Inst.CONTINUE or self.spinapi.Inst.LOOP
         prev_state_d = 0  # index of 'prev_state'
         prev_state =  self.get_state(prev_state_d, actual_chs, len(self._pins)) # vertical slice of states as bitset
 
         actual_smps = len(actual_chs[0])
 
-        cur_command = Inst.CONTINUE  # the next instruction
-        last_command = Inst.CONTINUE
+        cur_command = self.spinapi.Inst.CONTINUE  # the next instruction
+        last_command = self.spinapi.Inst.CONTINUE
         if loops == float('inf'):
             # in this case we want an infinite loop
-            last_command = Inst.BRANCH
+            last_command = self.spinapi.Inst.BRANCH
             loops=0
         elif loops > 1:
             # if loops > 1, then the first and last commands will be loop commands
-            cur_command = Inst.LOOP
-            last_command = Inst.END_LOOP
+            cur_command = self.spinapi.Inst.LOOP
+            last_command = self.spinapi.Inst.END_LOOP
 
         first_inst = float('inf')  # this will eventually change to the first instruction ID
 
@@ -166,14 +167,14 @@ class PBInd:
                 hex_flag = self.hex_flag(prev_state)
                 duration = (d - prev_state_d) * self._res
                 if not self._DEBUG_MODE:
-                    first_inst = min(pb_inst_pbonly(hex_flag, cur_command, int(loops), duration * ns), first_inst)  # we want inst to be the lowest instruction ID
+                    first_inst = min(self.spinapi.pb_inst_pbonly(hex_flag, cur_command, int(loops), duration * self.spinapi.ns), first_inst)  # we want inst to be the lowest instruction ID
                 else:
                     first_inst = 0
 
                 if self._DEBUG_MODE:
-                    self.instructions = self.instructions + "pb_inst_pbonly(" + str(hex_flag) + "," + str(cur_command) + "," + str(loops) + "," + str(duration * ns) + ")\n"
+                    self.instructions = self.instructions + "pb_inst_pbonly(" + str(hex_flag) + "," + str(cur_command) + "," + str(loops) + "," + str(duration * self.spinapi.ns) + ")\n"
 
-                cur_command = Inst.CONTINUE  # even if loops > 1, the next commands will all be CONTINUE commands (until last END_LOOP command)
+                cur_command = self.spinapi.Inst.CONTINUE  # even if loops > 1, the next commands will all be CONTINUE commands (until last END_LOOP command)
                 prev_state = current_state
                 prev_state_d = d
 
@@ -185,13 +186,13 @@ class PBInd:
             # instructions were issued in the loop. Therefore the last
             # command CANNOT be an END_LOOP (there was no 'begin loop').
             # Simply change it to a CONTINUE command
-            last_command = Inst.CONTINUE
+            last_command = self.spinapi.Inst.CONTINUE
             duration = duration * loops
 
         if not self._DEBUG_MODE:
             if first_inst == float('inf'):
                 first_inst = 0
-            pb_inst_pbonly(hex_flag, last_command, first_inst, duration * ns)  # this instruction could be an END_LOOP command
+            self.spinapi.pb_inst_pbonly(hex_flag, last_command, first_inst, duration * self.spinapi.ns)  # this instruction could be an END_LOOP command
 
         if self._DEBUG_MODE:
             self.instructions = self.instructions + "pb_inst_pbonly(" + str(hex_flag)+ "," + str(last_command) +","+ str(first_inst) +","+str(duration) +")\n"
