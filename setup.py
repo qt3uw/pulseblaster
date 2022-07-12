@@ -4,7 +4,7 @@ import re
 from setuptools import setup, find_namespace_packages
 
 package_name = 'pulseblaster'
-package_source = 'src'
+package_source = 'pulseblaster'
 
 VERSIONFILE=f'{package_source}/__version__.py'
 verstrline = open(VERSIONFILE, 'rt').read()

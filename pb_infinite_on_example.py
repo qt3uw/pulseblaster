@@ -1,9 +1,10 @@
 # example: pulse blaster pin held on indefinitely
-from PBInd import PBInd
-from spinapi import *
+# example: pulse blaster pin held on indefinitely
+from pulseblaster import PBInd
+from pulseblaster.spinapi import *
 
 cycle_length = 1e3   # ns
-hardware_pins = [23] # using pin 23 (AOM modulation) 
+hardware_pins = [23] # using pin 23 (AOM modulation)
 delays = []          # delays for each individual channel
 N=float('inf')       # number of loops (N = float('inf') to repeat indefinitely
 
