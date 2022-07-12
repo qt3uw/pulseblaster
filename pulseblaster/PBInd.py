@@ -2,9 +2,10 @@ from pulseblaster.spinapi import *
 import numpy as np
 
 class PBInd:
-# PBInd is a client of the SpinCore Pulseblaster API that allows the user
-# to program the pins of the Pulseblaster independently of one another in python. all times are inputted in nanoseconds.
-
+    '''
+    PBInd is a client of the SpinCore Pulseblaster API that allows the user
+    to program the pins of the Pulseblaster independently of one another in python. all times are inputted in nanoseconds.
+'''
     def __init__(self,
                 pins,
                 DEBUG_MODE = 0,
@@ -24,20 +25,26 @@ class PBInd:
 
 
     def on(self, pin, start, length):
-        # Turns 'pin' on high voltage for 'length' nanoseconds starting at 'start'
+        '''
+        Turns 'pin' on high voltage for 'length' nanoseconds starting at 'start'
+        '''
         self.set(pin, start, length, 1)
 
     def off(self, pin, start, length):
-        # Turns 'pin' to low voltage for 'length' nanoseconds starting at 'start'
+        '''
+        Turns 'pin' to low voltage for 'length' nanoseconds starting at 'start'
+        '''
         self.set(pin, start, length, 0)
 
 
     def make_clock(self, pin, period):
-        # Converts the 'pin' into a clock channel which starts at the
-        # beginning of the sequence and continues until the end with
-        # a constant period of 'period'. It is recommended to make the
-        # clock period equal to '2*res' to avoid flooring of clock
-        # pulse lengths (when looping).
+        '''
+        Converts the 'pin' into a clock channel which starts at the
+        beginning of the sequence and continues until the end with
+        a constant period of 'period'. It is recommended to make the
+        clock period equal to '2*res' to avoid flooring of clock
+        pulse lengths (when looping).
+        '''
 
         if period/2 < self._res:
             raise Exception('requested clock is impossible: less than resolution')
@@ -55,11 +62,13 @@ class PBInd:
 
 
     def program(self, offsets, loops):
-        # Generate and issue a set of instructions to the Pulseblaster
-        # based on the current state of the chs matrix. This method
-        # will also adjust each channel by the corresponding entry in
-        # the vector 'offset', and loop the instruction 'loops' number
-        # of times.
+        '''
+        Generate and issue a set of instructions to the Pulseblaster
+        based on the current state of the chs matrix. This method
+        will also adjust each channel by the corresponding entry in
+        the vector 'offset', and loop the instruction 'loops' number
+        of times.
+        '''
         if loops < 1:
             raise Exception('number of loops must be positive integer')
 
@@ -107,8 +116,10 @@ class PBInd:
         self.print_instructions()
 
     def print_instructions(self):
-        # Prints out the string representation of the instructions
-        # issued to the Pulseblaster
+        '''
+        Prints out the string representation of the instructions
+        issued to the Pulseblaster
+        '''
         if self._DEBUG_MODE:
             print(self.instructions)
 
@@ -186,9 +197,11 @@ class PBInd:
             self.instructions = self.instructions + "pb_inst_pbonly(" + str(hex_flag)+ "," + str(last_command) +","+ str(first_inst) +","+str(duration) +")\n"
 
     def get_offset_chs(self, offsets):
-        # Returns a new chs matrix that takes into account the offset
-        # value for each channel. This also returns the front and back
-        # index of the main body of the chs matrix.
+        '''
+        Returns a new chs matrix that takes into account the offset
+        value for each channel. This also returns the front and back
+        index of the main body of the chs matrix.
+        '''
         offsets_smps = round(offsets / self._res)
 
         if max(abs(offsets_smps)) >= len(self._output_chs):
