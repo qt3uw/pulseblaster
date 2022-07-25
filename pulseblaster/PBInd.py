@@ -53,7 +53,7 @@ class PBInd:
         cursor = 0
 
         # sweep across chs and add ticks
-        while cursor + period <= self._time:
+        while cursor + period <= self._on_time:
             self.on(pin, cursor, period/2)
             cursor = cursor + period/2
             self.off(pin, cursor, period/2)
