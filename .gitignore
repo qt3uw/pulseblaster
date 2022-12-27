@@ -1,6 +1,7 @@
 *.pyc
 build/*
 dist/*
+*.idea
 *.ipynb
 *__pycache__/*
 *.egg-info/*
