@@ -4,3 +4,4 @@ dist/*
 *.ipynb
 *__pycache__/*
 *.egg-info/*
+.idea*
