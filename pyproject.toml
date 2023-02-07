@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulseblaster"
-dynamic = ["version"] # version is defined in __init__.py
+version = "1.0.1.dev1"
 
 description = "Python control code for Pulseblaster pulse generation hardware."
 readme = "README.md"
@@ -52,6 +52,3 @@ dependencies = [
 "Source" = "https://github.com/qt3uw/pulseblaster"
 "Bug Tracker" = "https://github.com/qt3uw/pulseblaster/issues"
 "Changelog" = "https://github.com/qt3uw/pulseblaster/releases"
-
-[tool.setuptools.dynamic]
-version = {attr = "pulseblaster.__version__"}
