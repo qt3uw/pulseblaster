@@ -12,8 +12,7 @@ Spin Core Driver: http://www.spincore.com/support/spinapi/
 ## Python Install
 
 ```
-> cd pulseblaster
-> python -m pip install .
+> pip install pulseblaster
 ```
 
 # Usage
