@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulseblaster"
-version = "1.0.1.dev3"
+version = "1.0.1"
 
 description = "Python control code for Pulseblaster pulse generation hardware."
 readme = "README.md"
