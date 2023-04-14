@@ -1,6 +1,6 @@
 import pulseblaster.spinapi as spincore_spinapi
 import numpy as np
-
+# under review
 class PBInd:
     '''
     PBInd is a client of the SpinCore Pulseblaster API that allows the user
@@ -254,7 +254,7 @@ class PBInd:
             if state[d] == '1':
                 # this pin is on, add to flag
                 # TODO: somewhere, clarify self._pins(d) vs 2^self._pins(d)
-                hex_flag = hex_flag|2**(self._pins[d])
+                hex_flag = hex_flag | 2**(self._pins[d])
         return hex_flag
 
     def get_state(self, state_index, state_array, num_elements):

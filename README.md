@@ -19,5 +19,5 @@ Spin Core Driver: http://www.spincore.com/support/spinapi/
 
 ## Examples
 
-[pb_infinite_on_example.py](pb_infinite_on_example.py)
-[pb_infinite_square_wave_example.py](pb_infinite_square_wave_example.py)
+[pb_infinite_on_example.py](examples/pb_infinite_on_example.py)
+[pb_infinite_square_wave_example.py](examples/pb_infinite_square_wave_example.py)
