@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulseblaster"
-version = "1.0.2.dev0"
+version = "2.0.0"
 
 description = "Python control code for Pulseblaster pulse generation hardware."
 readme = "README.md"
@@ -15,9 +15,11 @@ keywords = ["qt3", "pulseblaster", "ttl", "pulse generator"]
 authors = [
     {name = "Zeeshawn Kazi", email = "zeeshawn@uw.edu" },
     {name = "G. Adam Cox", email = "gadamc@gmail.com" },
+    {name = "Victor Marcenac", email = "victosm@uw.edu" }
 ]
 
 maintainers = [
+    {name = "Victor Marcenac", email = "victorsm@uw.edu" },
     {name = "G. Adam Cox", email = "gadamc@gmail.com" },
     {name = "Maxwell Parsons", email = "mfpars@uw.edu " },
 ]
@@ -44,7 +46,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "numpy"
+    "numpy", 
+    "pulseblaster.spinapi"
 ]
 
 [project.urls]
