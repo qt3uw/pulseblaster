@@ -437,8 +437,9 @@ class PB_Instruct():
             self,
             check_visualization = True,
             number_of_loop_rpts = None,
-            all_off_duration_ns = None):
-        # %% Program the PulseBlaster
+            all_off_duration_ns = None,
+            pb_board_number = 0):
+        # Program the PulseBlaster
 
         if check_visualization:
             self.visualize_pb_sequence()
@@ -446,7 +447,7 @@ class PB_Instruct():
 
         import pulseblaster.pulseblasterinterface as pulseblasterinterface
         pbi = pulseblasterinterface.PulseBlasterInterface()
-        pbi.pb_board_number = 1
+        pbi.pb_board_number = pb_board_number
 
         import pulseblaster.spinapi as pb_spinapi
 

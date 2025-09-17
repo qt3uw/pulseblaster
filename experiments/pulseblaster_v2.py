@@ -228,8 +228,9 @@ class PulseBlasterPulsedODMR(PulseBlasterArbClock):
 
     self.pb_instruct.generate_instructions()
     self.pb_instruct.program_pb_loop_with_alloffs_and_run(
-            check_visualization = False,
-            number_of_loop_rpts = None,
-            all_off_duration_ns = None)
+            check_visualization = True,
+            number_of_loop_rpts = np.inf,
+            all_off_duration_ns = 0, # Possible to add delay
+            pb_board_number = self.pb_board_number)
 
     return self.cycle_period, 4
