@@ -91,7 +91,7 @@ class PODMR(experiments.common.Experiment):
         # compute the total number of samples to be acquired and the DAQ time
         # these will be the same for each RF frequency through the scan
         self.daq_time = self.cycle_period * self.N_cycles
-        self.total_clock_ticks = self.N_clock_ticks_per_cycle * self.N_cycles
+        self.total_clock_ticks = int(self.N_clock_ticks_per_cycle * self.N_cycles)
 
         self.edge_counter_config.configure_counter_period_measure(
             source_terminal = self.photon_counter_nidaq_terminal,

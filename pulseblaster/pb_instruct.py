@@ -328,10 +328,10 @@ class PB_Instruct():
                 # print(f'm_channel: {m_channel}')
                 self.instruction_pin_words[m_instruction] += int(self.instructions_pin_arr[m_instruction,m_channel]) << self.active_channels[m_channel].pin
         
-        print(f'chflip_pin_change_startns: {[chflip for chflip in chflip_pin_change_startns]}')
-        print(f'self.instructions_pin_arr: {self.instructions_pin_arr}')
-        print(f'self.instruction_durations: {self.instruction_durations}')
-        print(f'self.instruction_pin_words: {self.instruction_pin_words}')
+        # print(f'chflip_pin_change_startns: {[chflip for chflip in chflip_pin_change_startns]}')
+        # print(f'self.instructions_pin_arr: {self.instructions_pin_arr}')
+        # print(f'self.instruction_durations: {self.instruction_durations}')
+        # print(f'self.instruction_pin_words: {self.instruction_pin_words}')
         
 
     def visualize_pb_sequence(self, time_range=None):
