@@ -2,9 +2,9 @@ import logging
 import time
 import numpy as np
 
-import qt3utils.experiments.common
+import experiments.common
 
-class PODMR(qt3utils.experiments.common.Experiment):
+class PODMR(experiments.common.Experiment):
     def __init__(self, pulser, rfsynth, edge_counter_config,
                  freq_low=2820e6, freq_high=2920e6,
                  freq_step=1e6, rf_power=-20, **kwargs):
@@ -31,7 +31,7 @@ class PODMR(qt3utils.experiments.common.Experiment):
         }
     
     def run(self, N_cycles = 500000,
-                  post_process_function = qt3utils.experiments.common.measure_readout_contrast,
+                  post_process_function = experiments.common.measure_readout_contrast,
                   random_order = False):
         """
         Performs the PulsedODMR scan over the specificed range of frequencies.

@@ -1,4 +1,4 @@
-import pulseblaster.spinapi as spincore_spinapi
+import spinapi as spincore_spinapi
 import numpy as np
 
 class PBInd:

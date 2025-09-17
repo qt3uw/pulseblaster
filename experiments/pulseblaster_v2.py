@@ -7,10 +7,12 @@ The PulseBlasterAuto class has helper functions to automate finding of the minim
 import numpy as np
 from qt3utils.pulsers.interface import ExperimentPulser
 from qt3utils.errors import PulseBlasterInitError, PulseBlasterError, PulseTrainWidthError
+import sys
+sys.path.append(r'C:\Users\QT3\Documents\Victor\pulseblaster')
 
 # Attempt to import PulseBlaster modules with error handling for development purposes
 try:
-    from pulseblaster.PBInd import PBInd
+  #  from pulseblaster.PBInd import PBInd
     from pulseblaster.pb_instruct import PB_Instruct, PB_Channel
     import pulseblaster.spinapi
 except NameError as e:
@@ -129,7 +131,7 @@ class PulseBlasterArbClock(PulseBlaster):
     :param clock_channel: The channel number for the clock signal.
     :param start_time: The start time for the clock tick in seconds.
     """    
-    channel.start_stop.append((start_time, start_time + 50e-9))
+    channel.start_stop.append((start_time, start_time + 100e-9))
 
   def experimental_conditions(self):
     """
@@ -165,13 +167,13 @@ class PulseBlasterPulsedODMR(PulseBlasterArbClock):
                 clock_channel = 2,
                 trigger_channel = 3,
 
-                trigger_width = 50e-9,
+                trigger_width = 100e-9,
                 integration_time = 300e-9,
 
                 aom_width = 300e-9,
 
                 rf_pulse_duration = 100e-9,
-                padding = 60e-9):
+                padding = 100e-9):
     
     super().__init__(pb_board_number, aom_channel, rf_channel, clock_channel, trigger_channel)
 
@@ -204,8 +206,6 @@ class PulseBlasterPulsedODMR(PulseBlasterArbClock):
                                     instruction_conflict_resolution_method = 'abort'
                                     )
     
-    self.start_programming()
-
     first_aom = 0
     rf_start = self.aom_width + self.padding
     second_aom = rf_start + self.rf_pulse_duration + self.padding
@@ -227,7 +227,9 @@ class PulseBlasterPulsedODMR(PulseBlasterArbClock):
     # No RF
 
     self.pb_instruct.generate_instructions()
-    self.stop_programming()
-    self.close()
+    self.pb_instruct.program_pb_loop_with_alloffs_and_run(
+            check_visualization = False,
+            number_of_loop_rpts = None,
+            all_off_duration_ns = None)
 
     return self.cycle_period, 4
