@@ -13,8 +13,8 @@ def measure_total_contrast(data_buffer, experiment):
 
 def measure_readout_contrast(data_buffer, experiment):
     trace = aggregate_sum(data_buffer, experiment)
-    background = trace[1]
-    signal = trace[3]
+    background = trace[0]
+    signal = trace[2]
     return np.sum(signal)/np.sum(background)
 
 class Experiment:

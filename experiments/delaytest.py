@@ -3,43 +3,38 @@ import time
 import numpy as np
 
 import experiments.common
-from qt3utils.errors import PulseTrainWidthError
 
 logger = logging.getLogger(__name__)
 
-class RABI(experiments.common.Experiment):
+class DELAYTEST(experiments.common.Experiment):
     def __init__(self, pulser, rfsynth, edge_counter_config,
-                 rf_pulse_duration_low=100e-9,
-                 rf_pulse_duration_high=10e-6,
-                 rf_pulse_duration_step=50e-9,
-                 rf_frequency=2870e6,
-                 rf_power=-20, **kwargs):
+                 integration_delay_low=100e-9,
+                 integration_delay_high=500e-6,
+                 integration_delay_step=10e-9,
+                 **kwargs):
         
         # Call parent constructor
         super().__init__(pulser, rfsynth, edge_counter_config, **kwargs)
         
-        # Set RABI-specific attributes
-        self.rf_pulse_duration_low = rf_pulse_duration_low
-        self.rf_pulse_duration_high = rf_pulse_duration_high
-        self.rf_pulse_duration_step = rf_pulse_duration_step
-        self.rf_frequency = rf_frequency
-        self.rf_power = rf_power
+        # Set specific attributes
+        self.integration_delay_low = integration_delay_low
+        self.integration_delay_high = integration_delay_high
+        self.integration_delay_step = integration_delay_step
+
 
     def experimental_conditions(self):
         '''
         Returns a dictionary that captures the essential experimental conditions.
         '''
         return {
-            'rf_pulse_duration_low': self.rf_pulse_duration_low,
-            'rf_pulse_duration_high': self.rf_pulse_duration_high,
-            'rf_pulse_duration_step': self.rf_pulse_duration_step,
-            'rf_frequency': self.rf_frequency,
-            'rf_power': self.rf_power,
+            'integration_delay_low': self.integration_delay_low,
+            'integration_delay_high': self.integration_delay_high,
+            'integration_delay_step': self.integration_delay_step,
             'pulser': self.pulser.experimental_conditions()
         }
     
     def run(self, N_cycles=500000,
-            post_process_function=experiments.common.measure_readout_contrast,
+            post_process_function=experiments.common.aggregate_sum,
             random_order=False):
         """
         Performs a RABI experiment scanning over RF pulse durations.
@@ -58,41 +53,26 @@ class RABI(experiments.common.Experiment):
         if self.N_cycles <= 0:
             raise ValueError("N_cycles must be positive")
 
-        # Validate pulse width before starting
-        try:
-            self.pulser.raise_for_pulse_width(self.rf_pulse_duration_high)
-        except PulseTrainWidthError as e:
-            self.logger.error(f'The largest requested RF width pulse, {self.rf_pulse_duration_high}, is too large.')
-            raise e
-
-        # Configure RF synthesizer
-        self.rfsynth.stop_sweep()
-        self.rfsynth.trigger_mode('disabled')
-        self.rfsynth.set_power(self.rfsynth_channel, self.rf_power)
-        self.rfsynth.set_frequency(self.rfsynth_channel, self.rf_frequency)
-        self.rfsynth.rf_on(self.rfsynth_channel)
-        time.sleep(1)  # wait for RF box to fully turn on
-
         data = []
-        rf_pulse_duration_list = np.arange(
-            self.rf_pulse_duration_low, 
-            self.rf_pulse_duration_high + self.rf_pulse_duration_step, 
-            self.rf_pulse_duration_step)
+        integration_delay_list = np.arange(
+            self.integration_delay_low, 
+            self.integration_delay_high + self.integration_delay_step, 
+            self.integration_delay_step)
 
         if random_order:
-            np.random.shuffle(rf_pulse_duration_list)
+            np.random.shuffle(integration_delay_list)
 
         try:
-            for pulse_index, pulse_duration in enumerate(rf_pulse_duration_list):
-                self.current_pulse_duration = np.round(pulse_duration, 8)
+            for delay_index, integration_delay in enumerate(integration_delay_list):
+                self.current_integration_delay = np.round(integration_delay, 8)
 
-                self.logger.info(f'RF Width: {self.current_pulse_duration} seconds -- ({pulse_index+1}/{len(rf_pulse_duration_list)})')
+                self.logger.info(f'RF Width: {self.current_integration_delay} seconds -- ({delay_index+1}/{len(integration_delay_list)})')
 
-                data_buffer = self._run_and_acquire_step(self.current_pulse_duration)
+                data_buffer = self._run_and_acquire_step(self.current_integration_delay)
 
                 if post_process_function:
                     data_buffer = post_process_function(data_buffer, self)
-                data.append([self.current_pulse_duration,
+                data.append([self.current_integration_delay,
                               data_buffer])
 
         except Exception as e:
@@ -106,13 +86,13 @@ class RABI(experiments.common.Experiment):
             data = data[data[:,0].argsort()]
             return data
         
-    def _run_and_acquire_step(self, pulse_duration):
+    def _run_and_acquire_step(self, integration_delay):
         """
         Acquires data for a specific RF pulse duration.
         """
         try:
             # Program the pulser with the new pulse duration
-            self.cycle_period, self.N_clock_ticks_per_cycle = self.pulser.program_pulser_state(pulse_duration)
+            self.cycle_period, self.N_clock_ticks_per_cycle = self.pulser.program_pulser_state(integration_delay)
             # Compute timing for this pulse sequence
             self.daq_time = self.cycle_period * self.N_cycles
             self.total_clock_ticks = int(self.N_clock_ticks_per_cycle * self.N_cycles)

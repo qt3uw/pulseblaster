@@ -1,20 +1,58 @@
 import logging
-import time
 import numpy as np
+import time
 
 import experiments.common
 
 logger = logging.getLogger(__name__)
 
-class PODMR(experiments.common.Experiment):
-    def __init__(self, pulser, rfsynth, edge_counter_config,
-                 freq_low=2820e6, freq_high=2920e6,
-                 freq_step=1e6, rf_power=-20, **kwargs):
-        
-        # Call parent constructor
-        super().__init__(pulser, rfsynth, edge_counter_config, **kwargs)
-        
-        # Set PODMR-specific attributes
+class CWODMR(experiments.common.Experiment):
+
+    def __init__(self, cwodmr_pulser, rfsynth, edge_counter_config,
+                       photon_counter_nidaq_terminal = 'PFI0',
+                       clock_nidaq_terminal = 'PFI12',
+                       trigger_nidaq_terminal = 'PFI1',
+                       freq_low = 2820e6,
+                       freq_high = 2920e6,
+                       freq_step = 1e6,
+                       rf_power = -20,
+                       **kwargs):
+        '''
+        The input parameters to this object specify the conditions
+        of an experiment and the hardware system setup.
+
+        Hardware Settings
+            cwodmr_pulser - a qt3utils.pulsers.interface.ODMRPulser object (such as qt3utils.pulsers.qcsapphire.QCSapphCWODMRPulser)
+            rfsynth - a qt3rfsynthcontrol.Pulser object
+            edge_counter_config - a qt3utils.nidaq.config.EdgeCounter object
+            The rfsynth_channel specifies which output channel from the Windfreak RF SynthHD is used to provde the RF signal (either 0 or 1)
+
+            NI DAQ Connections
+            * photon_counter_nidaq_terminal - terminal connected to TTL pulses that indicate a photon
+            * clock_nidaq_terminal - terminal connected to the clock_pulser_channel
+            * trigger_nidaq_terminal - terminal connected to the trigger_pulser_channel
+
+        Experimental parameters
+
+            The frequency parameters define the range and step size of the scan.
+                The scan is inclusive of freq_low and freq_high.
+            The rf_power specifices the power of the MW source in units of dB mWatt.
+
+
+        Additionally, it is assumed that a 532 nm laser is continuously on. If you have
+        an AOM in your setup, you'll need to hold that on using an external power supply.
+
+        The user is responsible for analyzing the data. However, during acquisition,
+        a callback function can be supplied in order to perform an analysis
+        during the scan. The default callback function is defined in this module,
+        qt3utils.experiments.cwodmr.aggregate_data.
+
+        Without a callback function the raw data will be stored and could require
+        prohibitive amounts of memory.
+
+        '''
+        super().__init__(cwodmr_pulser, rfsynth, edge_counter_config, **kwargs)
+
         self.freq_low = freq_low
         self.freq_high = freq_high
         self.freq_step = freq_step
@@ -31,27 +69,28 @@ class PODMR(experiments.common.Experiment):
             'rf_power':self.rf_power,
             'pulser':self.pulser.experimental_conditions()
         }
-    
+
     def run(self, N_cycles = 500000,
-                  post_process_function = experiments.common.measure_readout_contrast,
+                  post_process_function = experiments.common.measure_total_contrast,
                   random_order = False):
         """
-        Performs the PulsedODMR scan over the specificed range of frequencies.
+        Performs the CWODMR scan over the specified range of frequencies.
 
-        For each frequency, some number of cycles of data are acquired. A cycle
-        is one full sequence of the pulse train used in the experiment. For PulsedODMR,
-        a cycle is {AOM on, AOM off/RF on, AOM on, AOM off/RF off}.
+        For each frequency, the specified number of cycles of data are acquired. A cycle
+        is one full sequence of the pulse train used in the experiment. For CWODMR,
+        a cycle is {RF on for pulser.rf_pulse_duration time, RF off for pulser.rf_pulse_duration time}.
 
         The N_cycles specifies the total number of these cycles to
-        acquire. Your choice depends on your desired resolution or signal-to-noise
-        ratio, your post-data acquisition processing choices, and the amount of memory
-        available on your computer.
+        acquire at each frequency. The choice depends on the desired resolution or signal-to-noise
+        ratio, the post-data acquisition processing function, and the amount of memory
+        available on the computer.
 
-        For each frequency, the number of data read from the NI DAQ will be
-        N_cycles * N_clock_ticks_per_cycle (usually 4 when using arbitrary clock, 2 for signal, 2 for background)..
+        For each frequency, the number of data points read from the NI DAQ will be
+        N_clock_ticks_per_cycle * N_cycles, where N_clock_ticks_per_cycle
+        is the value returned by self.pulser.program_pulser_state().
 
         These data are found in a data_buffer within this method. They
-        may be analyzed with a function passed to the argument `post_process_function`,
+        may be analyzed with a function passed to post_process_function,
         which is useful to reduce the required memory to hold the raw data.
 
         After data acquisition for each frequency in the scan,
@@ -75,8 +114,8 @@ class PODMR(experiments.common.Experiment):
         The remaining (fixed) values for analysis can be obtained from the
         self.experimental_conditions function.
 
-
         """
+
         self.N_cycles = int(N_cycles)
         if self.N_cycles <= 0:
             raise ValueError("N_cycles must be positive")
@@ -104,6 +143,7 @@ class PODMR(experiments.common.Experiment):
         self.edge_counter_config.create_counter_reader()
 
         data = []
+
         rf_frequency_list = np.arange(self.freq_low, self.freq_high + self.freq_step, self.freq_step)
         if random_order:
             np.random.shuffle(rf_frequency_list)
@@ -120,7 +160,7 @@ class PODMR(experiments.common.Experiment):
 
                 self.edge_counter_config.counter_task.wait_until_done()
                 self.edge_counter_config.counter_task.start()
-                time.sleep(self.daq_time * 1.1) # pause for acquisition
+                time.sleep(self.daq_time*1.1) #pause for acquisition
 
                 samples_read = self.edge_counter_config.counter_reader.read_many_sample_double(
                                         data_buffer,
@@ -131,6 +171,7 @@ class PODMR(experiments.common.Experiment):
                 if post_process_function:
                     data_buffer = post_process_function(data_buffer, self)
 
+                #should we make this a dictionary with self.current_rf_freq as the key?
                 data.append([self.current_rf_freq,
                              data_buffer])
 
@@ -144,3 +185,6 @@ class PODMR(experiments.common.Experiment):
             data = np.array(data, dtype=object)
             data = data[data[:,0].argsort()]
             return data
+
+    def build_spectrum_animator(self):
+        pass
